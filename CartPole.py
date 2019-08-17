@@ -15,12 +15,12 @@ max_env_steps = 1000
 gamma = 1.0
 epsilon = 1.0 #exploration
 epsilon_min = 0.01
-epsilon_decay = 0.99
+epsilon_decay = 0.999
 
-alpha = 0.01 # learning rate
-alpha_decay = 0.001
+alpha = 0.001 # learning rate
+alpha_decay = 0.01
 
-batch_size = 64
+batch_size = 100
 monitor = False
 quiet = False
 
@@ -46,9 +46,9 @@ if max_env_steps is not None:
 model = Sequential()
 model.add(Dense(24,input_dim=4,activation='tanh'))
 model.add(Dense(48, activation='relu'))
-model.add(Dense(96, activation='tanh'))
+model.add(Dense(96, activation='relu'))
 model.add(Dense(48, activation='relu'))
-model.add(Dense(24, activation='tanh'))
+model.add(Dense(24, activation='relu'))
 model.add(Dense(2,activation='relu'))
 model.compile(loss='mse', optimizer=adam(lr=alpha, decay=alpha_decay))
 
