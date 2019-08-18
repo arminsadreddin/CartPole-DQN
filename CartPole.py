@@ -8,7 +8,9 @@ from  keras.models import  Sequential
 from keras.layers import Dense
 from keras.optimizers import adam
 
-n_episodes = 10000
+max_score = 0
+
+n_episodes = 5000
 n_win_tick = 1000
 max_env_steps = 1000
 
@@ -17,10 +19,11 @@ epsilon = 1.0 #exploration
 epsilon_min = 0.01
 epsilon_decay = 0.999
 
-alpha = 0.001 # learning rate
+alpha = 0.01 # learning rate
 alpha_decay = 0.01
+alpha_test_factor = 1.0
 
-batch_size = 100
+batch_size = 256
 monitor = False
 quiet = False
 
@@ -44,7 +47,7 @@ if max_env_steps is not None:
 
 
 model = Sequential()
-model.add(Dense(24,input_dim=4,activation='tanh'))
+model.add(Dense(24,input_dim=4,activation='relu'))
 model.add(Dense(48, activation='relu'))
 model.add(Dense(96, activation='relu'))
 model.add(Dense(48, activation='relu'))
@@ -77,6 +80,7 @@ def replay(batch_size,epsilon):
         epsilon *= epsilon_decay
 # run function
 def run():
+    global max_score
     scores = deque(maxlen=100)
     for e in range(n_episodes):
         if e > n_episodes-2:
@@ -93,10 +97,27 @@ def run():
             remember(state, action, reward, next_state, done)
             state = next_state
             i += 1
+        if i > max_score:
+            max_score = i
+            # Save the weights
+            model.save_weights(str(max_score) + 'model_weights.h5')
+
+            # Save the model architecture
+            with open(str(max_score) + 'model_architecture.json', 'w') as f:
+                f.write(model.to_json())
+
+
         scores.append(i)
         mean_score = np.mean(scores)
         if mean_score >= n_win_tick and e >= 100:
             if not quiet: print("Ran " + str(e) + " episodes. Solved after " + str(e-100) + "trials")
+            # Save the weights
+            model.save_weights(str(max_score) + 'final_model_weights.h5')
+
+            # Save the model architecture
+            with open(str(max_score) + 'final_model_architecture.json', 'w') as f:
+                f.write(model.to_json())
+
             return e-100
         if e % 100 == 0 and not quiet:
             print("episode " + str(e) + " mean survival time over last 100 episodes was " + str(mean_score) + " ticks")
@@ -109,7 +130,7 @@ def run():
 
 run()
 
-
+print("max achived score is : " + str(max_score))
 
 
 
